@@ -1,0 +1,45 @@
+{
+    "face_id": "face_001",
+    "geometry": {
+        "neutral": null,
+        "expression": null,
+        "scan": null
+    },
+    "parameters": {
+        "makehuman": {
+            "identity": null,
+            "expression": null
+        },
+        "flame": null,
+        "arkit": null,
+        "eom": null
+    },
+    "textures": {
+        "diffuse": null,
+        "specular": null,
+        "normal": null,
+        "displacement": null,
+        "reflectance": null
+    },
+    "measurements": {
+        "landmarks": null,
+        "anthropometry": null,
+        "expression_metrics": null
+    },
+    "rendering": {
+        "camera": null,
+        "lighting": null,
+        "settings": null
+    },
+    "transforms": {
+        "mh_to_flame": null,
+        "arkit_to_mh": null,
+        "eom_to_mh": null
+    },
+    "experiments": {
+        "sampling": null,
+        "trajectories": null,
+        "reverse_correlation": null
+    },
+    "metadata": "metadata/meta.json"
+}
