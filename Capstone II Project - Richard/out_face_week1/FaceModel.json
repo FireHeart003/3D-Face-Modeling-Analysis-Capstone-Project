@@ -1,0 +1,17 @@
+{
+    "models": {
+        "makehuman": {
+            "components": {
+                "identity": {
+                    "parameters": {
+                        "identity_param": 0.5
+                    }
+                },
+                "expression": {
+                    "parameters": {}
+                }
+            },
+            "renderables": {}
+        }
+    }
+}

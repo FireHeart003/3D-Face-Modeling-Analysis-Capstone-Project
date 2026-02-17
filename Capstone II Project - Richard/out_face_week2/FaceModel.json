@@ -1,0 +1,26 @@
+{
+    "models": {
+        "makehuman": {
+            "components": {
+                "identity": {
+                    "parameters": {
+                        "identity_param": 0.5
+                    }
+                },
+                "expression": {
+                    "parameters": {
+                        "expression_param": 0.8
+                    }
+                }
+            },
+            "renderables": {
+                "default": {
+                    "mesh": "models/makehuman/renderables/default/test_mesh.obj",
+                    "mtl": null,
+                    "textures_dir": "models/makehuman/renderables/default/textures",
+                    "manifest": {}
+                }
+            }
+        }
+    }
+}

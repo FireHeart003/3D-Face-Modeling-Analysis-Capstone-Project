@@ -1,0 +1,2 @@
+from PIL import Image
+Image.new("RGB", (4, 4), (255, 0, 0)).save("tests/assets/textures/diffuse.png")
