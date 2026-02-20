@@ -2,10 +2,12 @@ import json
 import shutil
 import hashlib
 from pathlib import Path
+from .utilities import read_params
 
 # Hard coded values, need to implment
 def parse_mhm(path):
-    return {"identity_param": 0.5}
+    # return {"identity_param": 0.5}
+    return read_params(path)
 
 # Hard coded values, need to implment
 def parse_mhpose(path):
