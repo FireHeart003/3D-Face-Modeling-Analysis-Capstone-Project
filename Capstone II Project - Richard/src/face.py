@@ -3,16 +3,17 @@ import shutil
 import hashlib
 from pathlib import Path
 
-
+# Hard coded values, need to implment
 def parse_mhm(path):
     return {"identity_param": 0.5}
 
-
+# Hard coded values, need to implment
 def parse_mhpose(path):
     return {"expression_param": 0.8}
 
 
 class Face:
+    # Constructor
     def __init__(self, data=None):
         self.data = data or {
             "models": {
@@ -26,6 +27,7 @@ class Face:
             }
         }
 
+    # Alternate constructor that creates a Face object from a MakeHuman identity mhm file
     @classmethod
     def from_makehuman_identity(cls, mhm_path):
         identity_dict = parse_mhm(mhm_path)
@@ -42,10 +44,12 @@ class Face:
         }
         return cls(data=data)
 
+    # Add a MakeHuman expression to the Face object and updates the expression parameter in the dictionary of self.data
     def add_makehuman_expression(self, mhpose_path):
         expression_dict = parse_mhpose(mhpose_path)
         self.data["models"]["makehuman"]["components"]["expression"]["parameters"] = expression_dict
 
+    # Registers a renderable 3D mesh into a dictionary to be added to self.data object
     def add_renderable(self, model, name, mesh, mtl=None, textures_dir=None):
         renderable = {
             "mesh": mesh,
@@ -55,6 +59,7 @@ class Face:
         }
         self.data["models"][model]["renderables"][name] = renderable
 
+    # Saves the Face object data stored into a JSON file with relative paths
     def save(self, directory):
         directory = Path(directory)
         directory.mkdir(parents=True, exist_ok=True)
@@ -89,6 +94,7 @@ class Face:
         with open(directory / "FaceModel.json", "w") as f:
             json.dump(self.data, f, indent=4)
 
+    # Read a JSON object into a Face object with its data as a dictionary
     @classmethod
     def load(cls, directory):
         directory = Path(directory)
@@ -96,6 +102,7 @@ class Face:
             data = json.load(f)
         return cls(data=data)
 
+    # Validate a renderable and stored validation results into the manifest dictionary in rdata
     def validate_renderable(self, model, renderable, base_dir):
         base_dir = Path(base_dir)
         rdata = self.data["models"][model]["renderables"][renderable]
@@ -138,6 +145,7 @@ class Face:
 
         rdata["manifest"] = manifest
 
+    # Calls validate_renderable() for each renderable
     def validate(self, base_dir=None):
         base_dir = Path(base_dir) if base_dir else Path(".")
         for model_name, model_data in self.data["models"].items():

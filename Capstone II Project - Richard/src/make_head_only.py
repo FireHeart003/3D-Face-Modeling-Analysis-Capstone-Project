@@ -1,3 +1,4 @@
+# Takes in obj file and grabs only the vertexes that are part of the head
 def make_head_only_obj(in_obj_path, out_obj_path, face_mask):
     vertices = []
     uvs = []
