@@ -11,8 +11,10 @@ def parse_mhm(path):
 
 # Hard coded values, need to implment
 def parse_mhpose(path):
-    return {"expression_param": 0.8}
-
+    # return {"expression_param": 0.8}
+    with open(path, 'r') as f:
+        data = json.load(f)
+    return data['unit_poses']
 
 class Face:
     # Constructor
@@ -62,7 +64,7 @@ class Face:
         self.data["models"][model]["renderables"][name] = renderable
 
     # Saves the Face object data stored into a JSON file with relative paths
-    def save(self, directory):
+    def save(self, directory, export_assets=True):
         directory = Path(directory)
         directory.mkdir(parents=True, exist_ok=True)
 
@@ -76,21 +78,32 @@ class Face:
 
                 mesh_src = Path(rdata["mesh"])
                 mesh_dst = rdir / mesh_src.name
-                shutil.copy(mesh_src, mesh_dst)
+
+                
+                if export_assets:
+                    if mesh_src.resolve() != mesh_dst.resolve():
+                        shutil.copy(mesh_src, mesh_dst)
                 rdata["mesh"] = str(mesh_dst.relative_to(directory))
 
                 if rdata.get("mtl"):
                     mtl_src = Path(rdata["mtl"])
                     mtl_dst = rdir / mtl_src.name
-                    shutil.copy(mtl_src, mtl_dst)
+
+                    if export_assets:
+                        if mtl_src.resolve() != mtl_dst.resolve():
+                            shutil.copy(mtl_src, mtl_dst)
                     rdata["mtl"] = str(mtl_dst.relative_to(directory))
 
                 if rdata.get("textures_dir"):
                     textures_src = Path(rdata["textures_dir"])
                     textures_dst = rdir / "textures"
                     textures_dst.mkdir(exist_ok=True)
-                    for file in textures_src.iterdir():
-                        shutil.copy(file, textures_dst / file.name)
+
+                    if export_assets:
+                        for file in textures_src.iterdir():
+                            dst_file = textures_dst / file.name
+                            if file.resolve() != dst_file.resolve():
+                                shutil.copy(file, textures_dst / file.name)
                     rdata["textures_dir"] = str(textures_dst.relative_to(directory))
 
         with open(directory / "FaceModel.json", "w") as f:
