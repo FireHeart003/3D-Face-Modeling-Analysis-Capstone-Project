@@ -2,6 +2,7 @@ from setuptools import setup, Extension
 import sys
 
 # Try to import pybind11, but don't fail if it's not available yet
+# This file compiles test_binding.cpp
 try:
     import pybind11
     include_dirs = [pybind11.get_include()]
