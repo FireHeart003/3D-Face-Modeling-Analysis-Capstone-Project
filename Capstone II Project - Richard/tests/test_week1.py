@@ -1,6 +1,6 @@
 from src.face import Face
 
-# Run test using: PYTHONPATH=. python3 tests/test_week1.py  
+# Run test using: PYTHONPATH=. python3 tests/test_week1.py from Capstone II Project Folder
 
 # Save JSON file
 face = Face.from_makehuman_identity("tests/assets/makehuman_raw/identity_model.mhm")
