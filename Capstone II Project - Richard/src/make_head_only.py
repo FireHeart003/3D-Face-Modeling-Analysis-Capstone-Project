@@ -1,3 +1,5 @@
+from pathlib import Path
+
 def make_head_only_obj(in_obj_path, out_obj_path, face_mask):
     vertices = []
     uvs = []
@@ -7,6 +9,8 @@ def make_head_only_obj(in_obj_path, out_obj_path, face_mask):
     mtllib_line = None
     current_mtl = None
     
+    in_obj_path = Path(in_obj_path)
+    out_obj_path = Path(out_obj_path)
 
     with open(in_obj_path, "r") as f:
         lines = f.readlines()
@@ -55,6 +59,8 @@ def make_head_only_obj(in_obj_path, out_obj_path, face_mask):
     v_map = {old: i+1 for i, old in enumerate(sorted(used_v))}
     vt_map = {old: i+1 for i, old in enumerate(sorted(used_vt))}
     vn_map = {old: i+1 for i, old in enumerate(sorted(used_vn))}
+
+    out_obj_path.parent.mkdir(parents=True, exist_ok=True)
 
     with open(out_obj_path, "w") as out:
         if mtllib_line:
