@@ -1,35 +1,51 @@
-import trimesh
+# face_renderer/obj_to_glb.py
+from __future__ import annotations
+
 from pathlib import Path
-import hashlib
+import trimesh
 
-def convert_obj_to_glb(obj_path, output_path=None):
-    """
-    Convert OBJ file to GLB format.
-    
-    Args:
-        obj_path: Path to input .obj file
-        output_path: Path for output .glb file (optional)
-    
-    Returns:
-        Path to the generated GLB file
-    """
+from .cache import default_cache_dir, sha256_file
+
+
+class ObjToGlbError(RuntimeError):
+    pass
+
+
+def obj_to_glb_cached(obj_path: str | Path, cache_dir: str | Path | None = None) -> Path:
     obj_path = Path(obj_path)
-    
-    if output_path is None:
-        # Save GLB in results folder
-        output_path = Path("results") / obj_path.with_suffix('.glb').name
-    
-    output_path = Path(output_path)
-    
-    # Load mesh
-    mesh = trimesh.load(str(obj_path))
-    
-    # Export as GLB
-    mesh.export(str(output_path))
-    
-    return output_path
+    if not obj_path.exists():
+        raise FileNotFoundError(f"OBJ not found: {obj_path}")
 
-# Test it
-if __name__ == "__main__":
-    result = convert_obj_to_glb("tests/assets/test_mesh.obj")
-    print(f"Created: {result}")
+    cache_root = Path(cache_dir) if cache_dir is not None else default_cache_dir()
+    cache_root.mkdir(parents=True, exist_ok=True)
+
+    key = sha256_file(obj_path)
+    out_glb = cache_root / f"{obj_path.stem}-{key[:16]}.glb"
+
+    if out_glb.exists() and out_glb.stat().st_size > 0:
+        return out_glb
+
+    # Load OBJ (as scene or mesh)
+    try:
+        loaded = trimesh.load(obj_path, force="scene")
+    except Exception as e:
+        raise ObjToGlbError(f"Failed to load OBJ via trimesh: {e}") from e
+
+    if loaded is None:
+        raise ObjToGlbError("trimesh.load returned None")
+
+    # Export to GLB
+    try:
+        glb_bytes = loaded.export(file_type="glb")
+    except Exception as e:
+        raise ObjToGlbError(
+            "Failed to export GLB. "
+            "Try: pip install pygltflib, or ensure materials/textures are valid."
+            f" Original error: {e}"
+        ) from e
+
+    if not glb_bytes:
+        raise ObjToGlbError("GLB export produced empty output")
+
+    out_glb.write_bytes(glb_bytes)
+    return out_glb

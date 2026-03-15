@@ -30,6 +30,7 @@ libraries = [
     'bluegl',
     'filabridge',
     'filaflat',
+    'shaders',        # ← ADD THIS
     'geometry',
     'utils',
     'ibl',
