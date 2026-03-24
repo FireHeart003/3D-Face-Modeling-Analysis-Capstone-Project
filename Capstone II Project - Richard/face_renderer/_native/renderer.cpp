@@ -13,6 +13,7 @@
 #include <gltfio/FilamentAsset.h>
 #include <gltfio/ResourceLoader.h>
 #include <gltfio/TextureProvider.h>
+#include <gltfio/materials/uberarchive.h>
 #include <utils/EntityManager.h>
 #include <backend/DriverEnums.h>
 #include <backend/PixelBufferDescriptor.h>
@@ -26,17 +27,6 @@
 using namespace filament;
 using namespace filament::math;
 using namespace filament::gltfio;
-
-// ── Helper: load a binary file into a vector ──────────────────────────────────
-static std::vector<uint8_t> loadBinaryFile(const std::string& path) {
-    std::ifstream file(path, std::ios::binary | std::ios::ate);
-    if (!file.is_open()) return {};
-    size_t size = file.tellg();
-    file.seekg(0);
-    std::vector<uint8_t> data(size);
-    file.read(reinterpret_cast<char*>(data.data()), size);
-    return data;
-}
 
 FaceRenderer::FaceRenderer(int width, int height, const std::string& filamentDistPath)
     : mWidth(width), mHeight(height), mFilamentDistPath(filamentDistPath) {
@@ -61,34 +51,12 @@ FaceRenderer::FaceRenderer(int width, int height, const std::string& filamentDis
 
     _setupLight();
 
-    // ── Load ubershader package ───────────────────────────────────────────────
-    // Search common locations for the uberarchive shader package
-    std::vector<std::string> candidates = {
-        filamentDistPath + "/bin/assets/uberarchive.bin",
-        filamentDistPath + "/bin/uberarchive.bin",
-        filamentDistPath + "/assets/uberarchive.bin",
-        filamentDistPath + "/bin/assets/materials/uberarchive.bin",
-    };
-
-    for (auto& p : candidates) {
-        mUbershaderData = loadBinaryFile(p);
-        if (!mUbershaderData.empty()) {
-            printf("Loaded ubershader from: %s\n", p.c_str());
-            break;
-        }
-    }
-
-    if (!mUbershaderData.empty()) {
-        mMaterialProvider = createUbershaderProvider(
-            mEngine,
-            mUbershaderData.data(),
-            mUbershaderData.size()
-        );
-    } else {
-        // Last resort fallback — may cause decompression error on some builds
-        printf("WARNING: ubershader package not found, using nullptr fallback\n");
-        mMaterialProvider = createUbershaderProvider(mEngine, nullptr, 0);
-    }
+    // Use bundled ubershader data directly from the header
+    mMaterialProvider = createUbershaderProvider(
+        mEngine,
+        UBERARCHIVE_DEFAULT_DATA,
+        UBERARCHIVE_DEFAULT_SIZE
+    );
 
     mAssetLoader     = AssetLoader::create({mEngine, mMaterialProvider});
     mResourceLoader  = new ResourceLoader({mEngine});
@@ -122,7 +90,7 @@ void FaceRenderer::_setupRenderTarget() {
     mColorTexture = Texture::Builder()
         .width(mWidth).height(mHeight)
         .levels(1)
-        .usage(Texture::Usage::COLOR_ATTACHMENT | Texture::Usage::SAMPLEABLE)
+        .usage(Texture::Usage::COLOR_ATTACHMENT | Texture::Usage::SAMPLEABLE | Texture::Usage::BLIT_SRC)
         .format(Texture::InternalFormat::RGBA8)
         .build(*mEngine);
 

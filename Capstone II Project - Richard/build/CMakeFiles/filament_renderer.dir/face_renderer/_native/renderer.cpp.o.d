@@ -869,6 +869,7 @@ CMakeFiles/filament_renderer.dir/face_renderer/_native/renderer.cpp.o: \
   /Users/guar0/Dev/Capstone\ 2/3D-Face-Modeling-Analysis-Capstone-Project/Capstone\ II\ Project\ -\ Richard/filament_dist/include/gltfio/TextureProvider.h \
   /Users/guar0/Dev/Capstone\ 2/3D-Face-Modeling-Analysis-Capstone-Project/Capstone\ II\ Project\ -\ Richard/filament_dist/include/filament/Viewport.h \
   /Users/guar0/Dev/Capstone\ 2/3D-Face-Modeling-Analysis-Capstone-Project/Capstone\ II\ Project\ -\ Richard/filament_dist/include/filament/LightManager.h \
+  /Users/guar0/Dev/Capstone\ 2/3D-Face-Modeling-Analysis-Capstone-Project/Capstone\ II\ Project\ -\ Richard/filament_dist/include/gltfio/materials/uberarchive.h \
   /Users/guar0/Dev/Capstone\ 2/3D-Face-Modeling-Analysis-Capstone-Project/Capstone\ II\ Project\ -\ Richard/filament_dist/include/utils/EntityManager.h \
   /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/c++/v1/fstream \
   /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/c++/v1/filesystem \
