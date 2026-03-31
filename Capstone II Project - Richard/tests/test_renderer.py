@@ -30,7 +30,7 @@ print("✅ Model loaded")
 
 # Step 4: set camera
 print("Setting camera...")
-renderer.set_camera(yaw=0.0, pitch=0.0, radius=150.0)
+renderer.set_camera(yaw=0.0, pitch=0.0, radius=-1.0)  # -1 = auto from bbox
 print("✅ Camera set")
 
 # Step 5: render

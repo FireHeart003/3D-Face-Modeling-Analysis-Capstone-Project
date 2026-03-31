@@ -1068,6 +1068,7 @@ CMakeFiles/filament_renderer.dir/face_renderer/_native/bindings.cpp.o: \
   /Users/guar0/Dev/Capstone\ 2/3D-Face-Modeling-Analysis-Capstone-Project/Capstone\ II\ Project\ -\ Richard/filament_dist/include/utils/EntityInstance.h \
   /Users/guar0/Dev/Capstone\ 2/3D-Face-Modeling-Analysis-Capstone-Project/Capstone\ II\ Project\ -\ Richard/filament_dist/include/gltfio/FilamentInstance.h \
   /Users/guar0/Dev/Capstone\ 2/3D-Face-Modeling-Analysis-Capstone-Project/Capstone\ II\ Project\ -\ Richard/filament_dist/include/gltfio/MaterialProvider.h \
+  /Users/guar0/Dev/Capstone\ 2/3D-Face-Modeling-Analysis-Capstone-Project/Capstone\ II\ Project\ -\ Richard/filament_dist/include/gltfio/Animator.h \
   /Users/guar0/Dev/Capstone\ 2/3D-Face-Modeling-Analysis-Capstone-Project/Capstone\ II\ Project\ -\ Richard/filament_dist/include/gltfio/ResourceLoader.h \
   /Users/guar0/Dev/Capstone\ 2/3D-Face-Modeling-Analysis-Capstone-Project/Capstone\ II\ Project\ -\ Richard/filament_dist/include/filament/VertexBuffer.h \
   /Users/guar0/Dev/Capstone\ 2/3D-Face-Modeling-Analysis-Capstone-Project/Capstone\ II\ Project\ -\ Richard/filament_dist/include/gltfio/TextureProvider.h

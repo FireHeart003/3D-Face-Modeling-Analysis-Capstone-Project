@@ -11,6 +11,8 @@
 #include <filament/Fence.h>
 #include <gltfio/AssetLoader.h>
 #include <gltfio/FilamentAsset.h>
+#include <gltfio/FilamentInstance.h>
+#include <gltfio/Animator.h>
 #include <gltfio/ResourceLoader.h>
 #include <gltfio/TextureProvider.h>
 #include <utils/Entity.h>
@@ -31,6 +33,7 @@ public:
 private:
     void _setupRenderTarget();
     void _setupLight();
+    void _fixMaterials();
 
     int mWidth, mHeight;
     std::string mFilamentDistPath;
@@ -53,5 +56,6 @@ private:
     TextureProvider*    mTextureProvider  = nullptr;
     MaterialProvider*   mMaterialProvider = nullptr;
 
-    filament::math::float3 mFaceCenter    = {0, 0, 0};
+    filament::math::float3 mFaceCenter = {0, 0, 0};
+    float                  mAutoRadius = 300.0f;
 };

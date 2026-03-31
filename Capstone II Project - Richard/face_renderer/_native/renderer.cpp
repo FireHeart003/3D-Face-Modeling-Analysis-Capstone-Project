@@ -1,6 +1,8 @@
 #include "renderer.h"
 #include <filament/Engine.h>
 #include <filament/Renderer.h>
+#include <filament/RenderableManager.h>
+#include <filament/MaterialInstance.h>
 #include <filament/Scene.h>
 #include <filament/View.h>
 #include <filament/Camera.h>
@@ -11,8 +13,10 @@
 #include <filament/LightManager.h>
 #include <gltfio/AssetLoader.h>
 #include <gltfio/FilamentAsset.h>
+#include <gltfio/FilamentInstance.h>
 #include <gltfio/ResourceLoader.h>
 #include <gltfio/TextureProvider.h>
+#include <gltfio/Animator.h>
 #include <gltfio/materials/uberarchive.h>
 #include <utils/EntityManager.h>
 #include <backend/DriverEnums.h>
@@ -23,6 +27,7 @@
 #include <vector>
 #include <fstream>
 #include <stdexcept>
+#include <algorithm>
 
 using namespace filament;
 using namespace filament::math;
@@ -31,27 +36,24 @@ using namespace filament::gltfio;
 FaceRenderer::FaceRenderer(int width, int height, const std::string& filamentDistPath)
     : mWidth(width), mHeight(height), mFilamentDistPath(filamentDistPath) {
 
-    // Create engine — uses Metal automatically on Apple Silicon
     mEngine   = Engine::create();
     mRenderer = mEngine->createRenderer();
     mScene    = mEngine->createScene();
 
     _setupRenderTarget();
 
-    // Create view
     mView = mEngine->createView();
     mView->setScene(mScene);
     mView->setViewport({0, 0, (uint32_t)mWidth, (uint32_t)mHeight});
     mView->setRenderTarget(mRenderTarget);
+    mView->setBlendMode(View::BlendMode::TRANSLUCENT);
 
-    // Create camera
     mCameraEntity = utils::EntityManager::get().create();
     mCamera = mEngine->createCamera(mCameraEntity);
     mView->setCamera(mCamera);
 
     _setupLight();
 
-    // Use bundled ubershader data directly from the header
     mMaterialProvider = createUbershaderProvider(
         mEngine,
         UBERARCHIVE_DEFAULT_DATA,
@@ -117,6 +119,32 @@ void FaceRenderer::_setupLight() {
     mScene->addEntity(mLight);
 }
 
+void FaceRenderer::_fixMaterials() {
+    // Filament's ubershader renames all materials to "base_lit_opaque" etc so
+    // we cannot match by name here. All alphaMode/doubleSided is baked into the
+    // GLB by obj_to_glb.py. We use FilamentInstance::getMaterialInstances()
+    // (confirmed in FilamentInstance.h) to iterate and force doubleSided=true
+    // on everything as a safe global override.
+    FilamentInstance* instance = mAsset->getInstance();
+    if (!instance) {
+        printf("  [WARN] No FilamentInstance found\n");
+        return;
+    }
+
+    size_t matCount = instance->getMaterialInstanceCount();
+    MaterialInstance* const* materials = instance->getMaterialInstances();
+
+    printf("=== _fixMaterials: %zu material instances ===\n", matCount);
+    for (size_t i = 0; i < matCount; i++) {
+        if (!materials[i]) continue;
+        const char* name = materials[i]->getName();
+        printf("  [%zu] '%s'\n", i, name ? name : "(null)");
+        // Force double-sided so thin quads (eyebrows, eyelids) are never culled
+        materials[i]->setDoubleSided(true);
+    }
+    printf("=============================================\n");
+}
+
 void FaceRenderer::loadModel(const std::string& glbPath) {
     if (mAsset) {
         mScene->removeEntities(mAsset->getEntities(), mAsset->getEntityCount());
@@ -139,22 +167,66 @@ void FaceRenderer::loadModel(const std::string& glbPath) {
     }
 
     mResourceLoader->loadResources(mAsset);
+
+    // ── Apply GLB scene graph transforms ─────────────────────────────────────
+    // getAnimator() lives on FilamentInstance, not FilamentAsset.
+    // Calling applyAnimation + updateBoneMatrices evaluates the scene graph so
+    // sub-meshes (eyes, eyebrows, teeth) land on the face instead of origin.
+    FilamentInstance* instance = mAsset->getInstance();
+    if (instance) {
+        Animator* animator = instance->getAnimator();
+        if (animator) {
+            if (animator->getAnimationCount() > 0) {
+                animator->applyAnimation(0, 0.0f);
+            }
+            animator->updateBoneMatrices();
+            printf("Animator: applied %zu animation(s)\n",
+                   animator->getAnimationCount());
+        } else {
+            printf("Animator: no animator on instance\n");
+        }
+    } else {
+        printf("Animator: no instance found\n");
+    }
+    mEngine->flushAndWait();
+
     mAsset->releaseSourceData();
     mScene->addEntities(mAsset->getEntities(), mAsset->getEntityCount());
 
-    // Compute face center from bounding box
-    auto bbox = mAsset->getBoundingBox();
+    _fixMaterials();
+
+    // ── Bounding box + auto-radius ────────────────────────────────────────────
+    // Use instance bbox (reflects actual node transforms) if available,
+    // fall back to asset bbox.
+    filament::Aabb bbox;
+    if (instance) {
+        bbox = instance->getBoundingBox();
+    } else {
+        bbox = mAsset->getBoundingBox();
+    }
+
     mFaceCenter = (bbox.min + bbox.max) * 0.5f;
+    float3 bboxSize = bbox.max - bbox.min;
+    mAutoRadius = std::max({bboxSize.x, bboxSize.y, bboxSize.z}) * 1.5f;
+
+    printf("BBox min=(%.2f,%.2f,%.2f) max=(%.2f,%.2f,%.2f)\n",
+           bbox.min.x, bbox.min.y, bbox.min.z,
+           bbox.max.x, bbox.max.y, bbox.max.z);
+    printf("FaceCenter=(%.2f,%.2f,%.2f)  AutoRadius=%.2f\n",
+           mFaceCenter.x, mFaceCenter.y, mFaceCenter.z, mAutoRadius);
 }
 
 void FaceRenderer::setCamera(float yaw, float pitch, float radius) {
+    // radius <= 0 → use auto-computed value from bounding box
+    float r = (radius > 0.0f) ? radius : mAutoRadius;
+
     float y = yaw   * (float)M_PI / 180.0f;
     float p = pitch * (float)M_PI / 180.0f;
 
     float3 offset = {
-        radius * std::sin(y) * std::cos(p),
-        radius * std::sin(p),
-        radius * std::cos(y) * std::cos(p)
+        r * std::sin(y) * std::cos(p),
+        r * std::sin(p),
+        r * std::cos(y) * std::cos(p)
     };
 
     float3 eye    = mFaceCenter + offset;
@@ -162,20 +234,25 @@ void FaceRenderer::setCamera(float yaw, float pitch, float radius) {
     float3 up     = {0.0f, 1.0f, 0.0f};
 
     mCamera->lookAt(eye, target, up);
+
+    // Scale near/far to scene so nothing clips
+    float nearPlane = r * 0.01f;
+    float farPlane  = r * 10.0f;
     mCamera->setProjection(
         45.0f,
         (float)mWidth / (float)mHeight,
-        0.1f, 10000.0f,
+        nearPlane, farPlane,
         Camera::Fov::VERTICAL
     );
+
+    printf("Camera: eye=(%.2f,%.2f,%.2f) radius=%.2f near=%.3f far=%.1f\n",
+           eye.x, eye.y, eye.z, r, nearPlane, farPlane);
 }
 
 std::vector<uint8_t> FaceRenderer::render() {
-    // Render offscreen
     mRenderer->renderStandaloneView(mView);
     mEngine->flushAndWait();
 
-    // Read pixels from GPU → CPU
     std::vector<uint8_t> pixels(mWidth * mHeight * 4);
 
     backend::PixelBufferDescriptor pbd(
