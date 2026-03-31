@@ -1,3 +1,3 @@
-/Users/guar0/Dev/Capstone 2/3D-Face-Modeling-Analysis-Capstone-Project/Capstone II Project - Richard/build/CMakeFiles/filament_renderer.dir
-/Users/guar0/Dev/Capstone 2/3D-Face-Modeling-Analysis-Capstone-Project/Capstone II Project - Richard/build/CMakeFiles/edit_cache.dir
-/Users/guar0/Dev/Capstone 2/3D-Face-Modeling-Analysis-Capstone-Project/Capstone II Project - Richard/build/CMakeFiles/rebuild_cache.dir
+/Users/richardtairouz/Documents/GitHub/3D-Face-Modeling-Analysis-Capstone-Project/Capstone II Project - Richard/build/CMakeFiles/filament_renderer.dir
+/Users/richardtairouz/Documents/GitHub/3D-Face-Modeling-Analysis-Capstone-Project/Capstone II Project - Richard/build/CMakeFiles/edit_cache.dir
+/Users/richardtairouz/Documents/GitHub/3D-Face-Modeling-Analysis-Capstone-Project/Capstone II Project - Richard/build/CMakeFiles/rebuild_cache.dir

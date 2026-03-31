@@ -38,7 +38,14 @@ print("Rendering...")
 image = renderer.render(512, 512)
 print(f"✅ Got image: shape={image.shape} dtype={image.dtype}")
 
-# Step 6: save
-img = Image.fromarray(image, 'RGBA')
-img.save("out_face_milestone3/preview.png")
+# Step 6: save with solid background
+img = Image.fromarray(image, "RGBA")
+
+# choose a solid background color: white
+background = Image.new("RGBA", img.size, (255, 255, 255, 255))
+
+# composite rendered face over the background
+final_img = Image.alpha_composite(background, img).convert("RGB")
+
+final_img.save("out_face_milestone3/preview.png")
 print("✅ Saved preview.png")

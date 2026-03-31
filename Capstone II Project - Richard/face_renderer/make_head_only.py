@@ -96,7 +96,7 @@ def make_head_only_obj(in_obj_path, out_obj_path, face_mask, group_name="head_on
             out.write(line.strip() + "\n")
 
 
-def build_head_face_mask_by_y(obj_path: str, keep_top_percent: float = 0.22):
+def build_head_face_mask_by_y(obj_path: str, keep_top_percent: float = 0.10):
     obj_path = Path(obj_path)
     ys = []
 

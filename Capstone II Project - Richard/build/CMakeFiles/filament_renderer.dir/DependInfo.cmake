@@ -8,8 +8,8 @@ set(CMAKE_DEPENDS_LANGUAGES
 
 # The set of dependency files which are needed:
 set(CMAKE_DEPENDS_DEPENDENCY_FILES
-  "/Users/guar0/Dev/Capstone 2/3D-Face-Modeling-Analysis-Capstone-Project/Capstone II Project - Richard/face_renderer/_native/bindings.cpp" "CMakeFiles/filament_renderer.dir/face_renderer/_native/bindings.cpp.o" "gcc" "CMakeFiles/filament_renderer.dir/face_renderer/_native/bindings.cpp.o.d"
-  "/Users/guar0/Dev/Capstone 2/3D-Face-Modeling-Analysis-Capstone-Project/Capstone II Project - Richard/face_renderer/_native/renderer.cpp" "CMakeFiles/filament_renderer.dir/face_renderer/_native/renderer.cpp.o" "gcc" "CMakeFiles/filament_renderer.dir/face_renderer/_native/renderer.cpp.o.d"
+  "/Users/richardtairouz/Documents/GitHub/3D-Face-Modeling-Analysis-Capstone-Project/Capstone II Project - Richard/face_renderer/_native/bindings.cpp" "CMakeFiles/filament_renderer.dir/face_renderer/_native/bindings.cpp.o" "gcc" "CMakeFiles/filament_renderer.dir/face_renderer/_native/bindings.cpp.o.d"
+  "/Users/richardtairouz/Documents/GitHub/3D-Face-Modeling-Analysis-Capstone-Project/Capstone II Project - Richard/face_renderer/_native/renderer.cpp" "CMakeFiles/filament_renderer.dir/face_renderer/_native/renderer.cpp.o" "gcc" "CMakeFiles/filament_renderer.dir/face_renderer/_native/renderer.cpp.o.d"
   )
 
 # Targets to which this target links which contain Fortran sources.

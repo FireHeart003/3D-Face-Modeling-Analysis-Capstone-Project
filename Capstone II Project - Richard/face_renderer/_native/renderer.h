@@ -17,6 +17,7 @@
 #include <gltfio/TextureProvider.h>
 #include <utils/Entity.h>
 #include <math/vec3.h>
+#include <filament/Skybox.h>
 
 using namespace filament;
 using namespace filament::gltfio;
@@ -58,4 +59,6 @@ private:
 
     filament::math::float3 mFaceCenter = {0, 0, 0};
     float                  mAutoRadius = 300.0f;
+
+    filament::Skybox* mSkybox = nullptr;
 };

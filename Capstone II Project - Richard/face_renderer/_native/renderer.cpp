@@ -28,6 +28,7 @@
 #include <fstream>
 #include <stdexcept>
 #include <algorithm>
+#include <filament/Skybox.h>
 
 using namespace filament;
 using namespace filament::math;
@@ -40,13 +41,18 @@ FaceRenderer::FaceRenderer(int width, int height, const std::string& filamentDis
     mRenderer = mEngine->createRenderer();
     mScene    = mEngine->createScene();
 
+    mSkybox = Skybox::Builder()
+        .color({1.0f, 1.0f, 1.0f, 1.0f})
+        .build(*mEngine);
+    mScene->setSkybox(mSkybox);
+
     _setupRenderTarget();
 
     mView = mEngine->createView();
     mView->setScene(mScene);
     mView->setViewport({0, 0, (uint32_t)mWidth, (uint32_t)mHeight});
     mView->setRenderTarget(mRenderTarget);
-    mView->setBlendMode(View::BlendMode::TRANSLUCENT);
+    mView->setBlendMode(View::BlendMode::OPAQUE);
 
     mCameraEntity = utils::EntityManager::get().create();
     mCamera = mEngine->createCamera(mCameraEntity);
@@ -79,6 +85,11 @@ FaceRenderer::~FaceRenderer() {
     mEngine->destroyCameraComponent(mCameraEntity);
     utils::EntityManager::get().destroy(mCameraEntity);
     mEngine->destroy(mLight);
+
+    if (mSkybox) {
+        mEngine->destroy(mSkybox);
+    }
+
     mEngine->destroy(mView);
     mEngine->destroy(mScene);
     mEngine->destroy(mRenderer);
