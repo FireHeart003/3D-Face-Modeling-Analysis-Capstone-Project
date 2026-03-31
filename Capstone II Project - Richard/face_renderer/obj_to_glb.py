@@ -124,6 +124,14 @@ def _fix_scene_materials(scene, asset_root):
 
         if uv is None:
             print(f"  [WARN] {name}: no UVs found")
+        else:
+            # MakeHuman UVs frequently exceed [0,1] (UDIM / atlas overflow).
+            # Without clamping, the GLB sampler tiles the texture, producing the
+            # checkerboard-of-repeated-heads artifact visible in the render.
+            uv_min, uv_max = uv.min(), uv.max()
+            if uv_min < 0.0 or uv_max > 1.0:
+                print(f"  {name}: clamping UVs from [{uv_min:.3f}, {uv_max:.3f}] → [0, 1]")
+                uv = np.clip(uv, 0.0, 1.0)
 
         img = PILImage.open(str(tex_path)).convert("RGBA")
 
@@ -208,6 +216,31 @@ def _patch_glb_materials(glb_path: Path, geom_name_order: list = None):
         print(f"  GLB re-saved: {glb_path.name}")
     else:
         print("  GLB materials already correct.")
+
+    # ── Force all texture samplers to CLAMP_TO_EDGE ───────────────────────────
+    # glTF wrap constants: 33071 = CLAMP_TO_EDGE, 10497 = REPEAT (default).
+    # Without this, any residual out-of-range UV will tile the texture and
+    # produce the checkerboard-of-repeated-heads artifact.
+    CLAMP_TO_EDGE = 33071
+    sampler_changed = False
+    for i, sampler in enumerate(gltf.samplers):
+        if sampler.wrapS != CLAMP_TO_EDGE or sampler.wrapT != CLAMP_TO_EDGE:
+            print(f"  Patching sampler [{i}]: wrapS/T → CLAMP_TO_EDGE")
+            sampler.wrapS = CLAMP_TO_EDGE
+            sampler.wrapT = CLAMP_TO_EDGE
+            sampler_changed = True
+
+    # If there are textures but no explicit samplers, inject one
+    if not gltf.samplers and gltf.textures:
+        print(f"  Injecting CLAMP_TO_EDGE sampler for {len(gltf.textures)} texture(s)")
+        for tex in gltf.textures:
+            gltf.samplers.append(pygltflib.Sampler(wrapS=CLAMP_TO_EDGE, wrapT=CLAMP_TO_EDGE))
+            tex.sampler = len(gltf.samplers) - 1
+        sampler_changed = True
+
+    if sampler_changed:
+        gltf.save(str(glb_path))
+        print(f"  GLB re-saved with clamped samplers: {glb_path.name}")
 
     print("\n  Final GLB material state:")
     for i, mat in enumerate(gltf.materials):
