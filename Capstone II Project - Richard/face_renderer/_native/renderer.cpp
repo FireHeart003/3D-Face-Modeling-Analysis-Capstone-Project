@@ -84,7 +84,9 @@ FaceRenderer::~FaceRenderer() {
     AssetLoader::destroy(&mAssetLoader);
     mEngine->destroyCameraComponent(mCameraEntity);
     utils::EntityManager::get().destroy(mCameraEntity);
-    mEngine->destroy(mLight);
+    for (auto& light : mLights) {
+        mEngine->destroy(light);
+    }
 
     if (mSkybox) {
         mEngine->destroy(mSkybox);
@@ -121,13 +123,42 @@ void FaceRenderer::_setupRenderTarget() {
 }
 
 void FaceRenderer::_setupLight() {
-    mLight = utils::EntityManager::get().create();
+    // ── 3-point + back fill lighting rig ─────────────────────────────────────
+    // Key light: front-left, warm, strongest
+    mLights[0] = utils::EntityManager::get().create();
+    LightManager::Builder(LightManager::Type::DIRECTIONAL)
+        .color({1.0f, 0.98f, 0.95f})
+        .intensity(90000.0f)
+        .direction({0.4f, -0.6f, -1.0f})
+        .build(*mEngine, mLights[0]);
+    mScene->addEntity(mLights[0]);
+
+    // Fill light: front-right, cooler, softer
+    mLights[1] = utils::EntityManager::get().create();
+    LightManager::Builder(LightManager::Type::DIRECTIONAL)
+        .color({0.85f, 0.90f, 1.0f})
+        .intensity(40000.0f)
+        .direction({-0.6f, -0.3f, -0.8f})
+        .build(*mEngine, mLights[1]);
+    mScene->addEntity(mLights[1]);
+
+    // Back/rim light: behind the head, prevents pure-black silhouette
+    mLights[2] = utils::EntityManager::get().create();
+    LightManager::Builder(LightManager::Type::DIRECTIONAL)
+        .color({0.9f, 0.95f, 1.0f})
+        .intensity(50000.0f)
+        .direction({0.0f, -0.2f, 1.0f})
+        .build(*mEngine, mLights[2]);
+    mScene->addEntity(mLights[2]);
+
+    // Top light: gentle overhead fill, reduces harsh shadows under brow/nose
+    mLights[3] = utils::EntityManager::get().create();
     LightManager::Builder(LightManager::Type::DIRECTIONAL)
         .color({1.0f, 1.0f, 1.0f})
-        .intensity(100000.0f)
-        .direction({0.0f, -1.0f, -1.0f})
-        .build(*mEngine, mLight);
-    mScene->addEntity(mLight);
+        .intensity(25000.0f)
+        .direction({0.0f, -1.0f, 0.0f})
+        .build(*mEngine, mLights[3]);
+    mScene->addEntity(mLights[3]);
 }
 
 void FaceRenderer::_fixMaterials() {
@@ -228,7 +259,6 @@ void FaceRenderer::loadModel(const std::string& glbPath) {
 }
 
 void FaceRenderer::setCamera(float yaw, float pitch, float radius) {
-    // radius <= 0 → use auto-computed value from bounding box
     float r = (radius > 0.0f) ? radius : mAutoRadius;
 
     float y = yaw   * (float)M_PI / 180.0f;
@@ -246,7 +276,6 @@ void FaceRenderer::setCamera(float yaw, float pitch, float radius) {
 
     mCamera->lookAt(eye, target, up);
 
-    // Scale near/far to scene so nothing clips
     float nearPlane = r * 0.01f;
     float farPlane  = r * 10.0f;
     mCamera->setProjection(
@@ -255,6 +284,35 @@ void FaceRenderer::setCamera(float yaw, float pitch, float radius) {
         nearPlane, farPlane,
         Camera::Fov::VERTICAL
     );
+
+    // ── Camera-relative lighting ──────────────────────────────────────────────
+    // Inline helpers since filament::math::normalize/cross aren't in scope here.
+    auto norm3 = [](float3 v) -> float3 {
+        float len = std::sqrt(v.x*v.x + v.y*v.y + v.z*v.z);
+        return (len > 0.0f) ? float3{v.x/len, v.y/len, v.z/len} : float3{0,0,1};
+    };
+    auto cross3 = [](float3 a, float3 b) -> float3 {
+        return {a.y*b.z - a.z*b.y,
+                a.z*b.x - a.x*b.z,
+                a.x*b.y - a.y*b.x};
+    };
+
+    float3 forward = norm3(target - eye);
+    float3 right   = norm3(cross3(forward, up));
+    float3 cam_up  = cross3(right, forward);
+
+    auto& lm = mEngine->getLightManager();
+
+    float3 key_dir  = norm3(forward - right * 0.4f - cam_up * 0.3f);
+    lm.setDirection(lm.getInstance(mLights[0]), {key_dir.x,  key_dir.y,  key_dir.z});
+
+    float3 fill_dir = norm3(forward + right * 0.6f - cam_up * 0.1f);
+    lm.setDirection(lm.getInstance(mLights[1]), {fill_dir.x, fill_dir.y, fill_dir.z});
+
+    float3 rim_dir  = norm3(-forward - cam_up * 0.1f);
+    lm.setDirection(lm.getInstance(mLights[2]), {rim_dir.x,  rim_dir.y,  rim_dir.z});
+
+    lm.setDirection(lm.getInstance(mLights[3]), {0.0f, -1.0f, 0.0f});
 
     printf("Camera: eye=(%.2f,%.2f,%.2f) radius=%.2f near=%.3f far=%.1f\n",
            eye.x, eye.y, eye.z, r, nearPlane, farPlane);

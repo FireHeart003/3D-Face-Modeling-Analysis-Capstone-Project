@@ -1,8 +1,14 @@
+blinker==1.9.0
+click==8.3.2
 dataclasses-json==0.6.7
 Deprecated==1.3.1
+-e git+https://github.com/FireHeart003/3D-Face-Modeling-Analysis-Capstone-Project.git@9283fe0f49da8d26e7295fc3a06388f0f8b9454a#egg=face_renderer&subdirectory=Capstone II Project - Richard
 filelock==3.24.2
+Flask==3.1.3
+flask-cors==6.0.2
 fsspec==2026.2.0
 iopath==0.1.10
+itsdangerous==2.2.0
 Jinja2==3.1.6
 MarkupSafe==3.0.3
 marshmallow==3.26.2
@@ -16,8 +22,10 @@ portalocker==3.2.0
 pybind11==3.0.2
 pygltflib==1.16.5
 sympy==1.14.0
+torch==2.10.0
 tqdm==4.67.3
 trimesh==4.11.2
 typing-inspect==0.9.0
 typing_extensions==4.15.0
+Werkzeug==3.1.8
 wrapt==2.1.1

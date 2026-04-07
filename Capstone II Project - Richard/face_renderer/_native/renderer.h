@@ -1,6 +1,7 @@
 #pragma once
 #include <string>
 #include <vector>
+#include <array>
 #include <filament/Engine.h>
 #include <filament/Renderer.h>
 #include <filament/Scene.h>
@@ -49,7 +50,7 @@ private:
     Texture*            mColorTexture     = nullptr;
     Texture*            mDepthTexture     = nullptr;
     utils::Entity       mCameraEntity;
-    utils::Entity       mLight;
+    std::array<utils::Entity, 4> mLights;
 
     AssetLoader*        mAssetLoader      = nullptr;
     FilamentAsset*      mAsset            = nullptr;
