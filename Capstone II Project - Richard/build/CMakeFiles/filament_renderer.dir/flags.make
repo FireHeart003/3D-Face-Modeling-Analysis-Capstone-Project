@@ -4,7 +4,7 @@
 # compile CXX with /usr/bin/c++
 CXX_DEFINES = -Dfilament_renderer_EXPORTS
 
-CXX_INCLUDES = -I"/Users/guar0/Dev/Capstone 2/3D-Face-Modeling-Analysis-Capstone-Project/Capstone II Project - Richard/filament_dist/include" -isystem /opt/homebrew/opt/python@3.11/Frameworks/Python.framework/Versions/3.11/include/python3.11 -isystem "/Users/guar0/Dev/Capstone 2/3D-Face-Modeling-Analysis-Capstone-Project/venv/lib/python3.11/site-packages/pybind11/include"
+CXX_INCLUDES = -I"/Users/guar0/Dev/Capstone 2/3D-Face-Modeling-Analysis-Capstone-Project/Capstone II Project - Richard/filament_dist/include" -isystem /opt/homebrew/opt/python@3.13/Frameworks/Python.framework/Versions/3.13/include/python3.13 -isystem "/Users/guar0/Dev/Capstone 2/3D-Face-Modeling-Analysis-Capstone-Project/venv/lib/python3.13/site-packages/pybind11/include"
 
 CXX_FLAGSarm64 = -O3 -DNDEBUG -std=gnu++17 -arch arm64 -fPIC -fvisibility=hidden -flto
 
