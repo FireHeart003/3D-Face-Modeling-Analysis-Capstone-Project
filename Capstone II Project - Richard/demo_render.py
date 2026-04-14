@@ -27,8 +27,9 @@ def main():
     parser.add_argument("--size",   type=int, default=512,  help="Image size in pixels")
     parser.add_argument("--pitch",  type=float, default=0.0, help="Camera pitch in degrees")
     parser.add_argument("--out",    default="out_face",      help="Output directory")
-    parser.add_argument("--keep-top", type=float, default=0.13)
-    parser.add_argument("--yaw",      type=float, default=0.0)
+    parser.add_argument("--keep-top", type=float, default=0.13, help="Keep top N% of vertices")
+    parser.add_argument("--yaw",      type=float, default=0.0, help="Camera yaw in degrees")
+    parser.add_argument("--turntable", action="store_true", help="Also render 60-frame turntable")
     args = parser.parse_args()
 
     mesh_dir = Path(args.mesh_dir)
@@ -54,20 +55,21 @@ def main():
     print(f"Preview done in {(time.perf_counter()-t0)*1000:.1f} ms")
 
     # ── Turntable ─────────────────────────────────────────────────────────────
-    turntable_dir = out_dir / "turntable"
-    print(f"\nRendering {args.frames}-frame turntable → {turntable_dir}/")
-    t0 = time.perf_counter()
-    render_face(
-        mesh_dir,
-        out_path=str(turntable_dir),
-        image_size=args.size,
-        n_frames=args.frames,
-        pitch_degrees=args.pitch,
-        keep_top_percent=args.keep_top,
-    )
-    elapsed = time.perf_counter() - t0
-    print(f"Turntable done in {elapsed:.2f} s  ({elapsed/args.frames*1000:.1f} ms/frame)")
-    print(f"\n✅ All done. Outputs in {out_dir}/")
+    if args.turntable:
+        turntable_dir = out_dir / "turntable"
+        print(f"\nRendering {args.frames}-frame turntable → {turntable_dir}/")
+        t0 = time.perf_counter()
+        render_face(
+            mesh_dir,
+            out_path=str(turntable_dir),
+            image_size=args.size,
+            n_frames=args.frames,
+            pitch_degrees=args.pitch,
+            keep_top_percent=args.keep_top,
+        )
+        elapsed = time.perf_counter() - t0
+        print(f"Turntable done in {elapsed:.2f} s  ({elapsed/args.frames*1000:.1f} ms/frame)")
+        print(f"\n✅ All done. Outputs in {out_dir}/")
 
 
 if __name__ == "__main__":

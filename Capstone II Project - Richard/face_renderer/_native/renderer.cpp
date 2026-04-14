@@ -1,3 +1,4 @@
+// Import renderer.h and everything needed from Filament Modules
 #include "renderer.h"
 #include <filament/Engine.h>
 #include <filament/Renderer.h>
@@ -34,20 +35,25 @@ using namespace filament;
 using namespace filament::math;
 using namespace filament::gltfio;
 
+// Constructor
 FaceRenderer::FaceRenderer(int width, int height, const std::string& filamentDistPath)
     : mWidth(width), mHeight(height), mFilamentDistPath(filamentDistPath) {
 
-    mEngine   = Engine::create();
-    mRenderer = mEngine->createRenderer();
-    mScene    = mEngine->createScene();
+    // Start up Filament
+    mEngine   = Engine::create(); // Create the Filament Engine
+    mRenderer = mEngine->createRenderer(); // Create the environment, the drawing
+    mScene    = mEngine->createScene(); // Create the scene, the 3D world where object lives in
 
+    // Create a white background(skybox)
     mSkybox = Skybox::Builder()
-        .color({1.0f, 1.0f, 1.0f, 1.0f})
+        .color({1.0f, 1.0f, 1.0f, 1.0f}) // Values are in RGBA format, set to white but default is black
         .build(*mEngine);
     mScene->setSkybox(mSkybox);
 
+    // Set up render target and offscreen texture to render into
     _setupRenderTarget();
 
+    
     mView = mEngine->createView();
     mView->setScene(mScene);
     mView->setViewport({0, 0, (uint32_t)mWidth, (uint32_t)mHeight});
