@@ -1,6 +1,9 @@
-# 3D Face Renderer — Filament GPU Rendering Pipeline
+# 3D Face Modeling and Analysis Framework — Filament GPU Rendering Pipeline
+
+Instructor: Masoud Sadjadi | Version: 2026 Spring | License: MIT
 
 A unified Python framework for 3D face modeling and rendering using Google's Filament engine. This system takes MakeHuman-generated assets and produces high-quality GPU-accelerated face renders via a clean Python API.
+
 
 **Platform Notice:** This project currently only supports **macOS with Apple Silicon (M1/M2/M3/M4 chips)**. The C++ build system and Filament backend are configured for Metal (Apple's GPU API). Windows and Linux support would require rebuilding Filament for those platforms.
 
@@ -176,3 +179,5 @@ There is a view_server.py that can be used to render on localhost. You can run i
 python tests/view_server.py
 ```
 This allows for easy modification of the yaw and pitch of the face render.
+
+
