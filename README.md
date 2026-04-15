@@ -35,13 +35,12 @@ pip install -r requirements.txt
 
 ## Installation
 
-Build and install the native C++ extension (required before first run):
-
+Build and install the native C++ extension (required before first run): **Ensure that you are in the directory above the build folder.**
 ```bash
-pip install .
+cd build && cmake .. -DCMAKE_BUILD_TYPE=Release && make -j4
 ```
 
-This compiles the Filament-based `FaceRenderer` C++ class and exposes it to Python via pybind11. You only need to do this once, or after any changes to `renderer.cpp` or `bindings.cpp`.
+This compiles the Filament-based `FaceRenderer` C++ class and exposes it to Python via pybind11. You only need to do this once, or after any changes to `renderer.cpp` or `bindings.cpp`. 
 
 ---
 
@@ -72,12 +71,12 @@ python demo_render.py [mesh_dir] [options]
 
 Options:
   --size        Image size in pixels (default: 512)
-  --yaw         Camera horizontal rotation in degrees (default: 0.0)
-  --pitch       Camera vertical tilt in degrees (default: 0.0)
+  --yaw         Camera horizontal rotation in degrees (default: 0.0). Degrees > 0 = Rotate left and vice versa 
+  --pitch       Camera vertical tilt in degrees (default: 0.0). Degrees > 0 = Tilt head down and vice versa
   --keep-top    Fraction of mesh height to keep as head-only (default: 0.13)
   --frames      Number of turntable frames (default: 60, only used with --turntable)
   --out         Output directory (default: out_face)
-  --turntable   Also render a full 360° turntable animation
+  --turntable   Also render a full 360° turntable animation(No params needed, just put "--turntable")
 ```
 
 ### Examples
@@ -98,52 +97,6 @@ python demo_render.py --keep-top 0.20
 # 60-frame turntable at 512px
 python demo_render.py --turntable --frames 60
 ```
-
----
-
-## Python API
-
-You can also call `render_face()` directly in your own scripts:
-
-```python
-from face_renderer import render_face
-
-# Single preview
-render_face(
-    "tests/assets/makehuman_raw",
-    out_path="preview.png",
-    image_size=512,
-    yaw_degrees=0.0,
-    pitch_degrees=0.0,
-    keep_top_percent=0.13,
-)
-
-# 60-frame turntable
-render_face(
-    "tests/assets/makehuman_raw",
-    out_path="turntable/",
-    n_frames=60,
-    image_size=512,
-)
-```
-
-### `render_face()` Parameters
-
-| Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
-| `face_or_path` | str / Path | required | Directory containing `mesh.obj`, or a Face object |
-| `model` | str | `"makehuman"` | Model name (for Face object input) |
-| `renderable` | str | `"default"` | Renderable name (for Face object input) |
-| `out_path` | str | `"preview.png"` | Output PNG path, or directory for turntable |
-| `image_size` | int | `512` | Width and height of rendered image in pixels |
-| `n_frames` | int | `1` | Number of frames (>1 triggers turntable mode) |
-| `yaw_degrees` | float | `0.0` | Camera horizontal rotation in degrees |
-| `pitch_degrees` | float | `0.0` | Camera vertical tilt in degrees |
-| `radius` | float | `None` | Camera distance (None = auto from bounding box) |
-| `keep_top_percent` | float | `0.13` | Fraction of mesh height kept as head-only |
-| `bg_color` | tuple | `(255,255,255)` | RGB background color |
-
----
 
 ## Output
 
@@ -215,4 +168,11 @@ mesh_folder/
     └── tongue01_diffuse.png
 ```
 
-This matches the export format from MakeHuman.
+This matches the export format from MakeHuman and any required textures for the mesh obj.
+
+## Additional Notes
+There is a view_server.py that can be used to render on localhost. You can run it thru the following command:
+```
+python tests/view_server.py
+```
+This allows for easy modification of the yaw and pitch of the face render.
