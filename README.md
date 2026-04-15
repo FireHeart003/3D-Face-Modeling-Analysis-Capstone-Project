@@ -1,4 +1,4 @@
-# 3D Face Renderer — Filament GPU Rendering Pipeline
+# 33D Face Modeling and Analysis Framework — Filament GPU Rendering Pipeline
 
 A unified Python framework for 3D face modeling and rendering using Google's Filament engine. This system takes MakeHuman-generated assets and produces high-quality GPU-accelerated face renders via a clean Python API.
 
