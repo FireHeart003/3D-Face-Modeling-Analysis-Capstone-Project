@@ -40,7 +40,9 @@ pip install -r requirements.txt
 
 Build and install the native C++ extension (required before first run): **Ensure that you are in the directory above the build folder.**
 ```bash
+rm -rf build && mkdir build   
 cd build && cmake .. -DCMAKE_BUILD_TYPE=Release && make -j4
+cd ..                              
 ```
 
 This compiles the Filament-based `FaceRenderer` C++ class and exposes it to Python via pybind11. You only need to do this once, or after any changes to `renderer.cpp` or `bindings.cpp`. 
