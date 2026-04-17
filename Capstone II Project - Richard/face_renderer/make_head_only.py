@@ -1,6 +1,6 @@
 from pathlib import Path
 
-
+# Create a new obj file using only the selected faces
 def make_head_only_obj(in_obj_path, out_obj_path, face_mask, group_name="head_only"):
     in_obj_path = Path(in_obj_path)
     out_obj_path = Path(out_obj_path)
@@ -17,6 +17,7 @@ def make_head_only_obj(in_obj_path, out_obj_path, face_mask, group_name="head_on
     with open(in_obj_path, "r") as f:
         lines = f.readlines()
 
+    # Read and sort every line of the OBJ into arrays
     for line in lines:
         if line.startswith("mtllib "):
             if mtllib_line is None:
@@ -32,6 +33,7 @@ def make_head_only_obj(in_obj_path, out_obj_path, face_mask, group_name="head_on
         elif line.startswith("f "):
             faces.append((current_mtl, line))  # store material with face
 
+    # Filter faces for only the ones above the cutoff
     selected_faces = [faces[i] for i in face_mask]
 
     used_v = set()
@@ -55,12 +57,14 @@ def make_head_only_obj(in_obj_path, out_obj_path, face_mask, group_name="head_on
             new_face.append((v, vt, vn))
         parsed_faces.append((mtl, new_face))
 
+    # Map old index to new index
     v_map  = {old: i+1 for i, old in enumerate(sorted(used_v))}
     vt_map = {old: i+1 for i, old in enumerate(sorted(used_vt))}
     vn_map = {old: i+1 for i, old in enumerate(sorted(used_vn))}
 
     Path(out_obj_path).parent.mkdir(parents=True, exist_ok=True)
 
+    # Write new OBJ
     with open(out_obj_path, "w") as out:
         if mtllib_line:
             out.write(mtllib_line)          # ✅ keeps mtllib mesh.mtl
@@ -96,10 +100,12 @@ def make_head_only_obj(in_obj_path, out_obj_path, face_mask, group_name="head_on
             out.write(line.strip() + "\n")
 
 
+# Creates a face_mask from a OBJ file
 def build_head_face_mask_by_y(obj_path: str, keep_top_percent: float = 0.10):
     obj_path = Path(obj_path)
     ys = []
 
+    # Collect the Y coordinates(vertical axis - head is at the top)
     with obj_path.open("r", errors="ignore") as f:
         for line in f:
             if line.startswith("v "):
@@ -110,15 +116,18 @@ def build_head_face_mask_by_y(obj_path: str, keep_top_percent: float = 0.10):
     if not ys:
         raise ValueError("No vertices found in OBJ")
 
+    # Compute the cutoff
     min_y, max_y = min(ys), max(ys)
     cutoff = max_y - keep_top_percent * (max_y - min_y)
 
     face_mask = []
     face_index = 0
 
+    # Extract the vertex index from a face token
     def parse_vi(tok: str) -> int:
         return int(tok.split("/")[0]) - 1
 
+    # Check if vertices are above cutoff and returns it all in a list of indices
     with obj_path.open("r", errors="ignore") as f:
         for line in f:
             if line.startswith("f "):

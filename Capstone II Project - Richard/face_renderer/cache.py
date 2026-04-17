@@ -5,9 +5,11 @@ from pathlib import Path
 from face_renderer.obj_to_glb import obj_to_glb
 from face_renderer.make_head_only import make_head_only_obj, build_head_face_mask_by_y
 
+# Set Cache directory
 CACHE_DIR = Path(os.environ.get("FACE_RENDERER_CACHE", Path.home() / ".cache" / "face_renderer"))
 
 
+# Computes SHA256 hash that is unique per file
 def _file_sha256(path: Path, chunk: int = 1 << 20) -> str:
     """Return SHA-256 hex digest of a file."""
     h = hashlib.sha256()
@@ -19,7 +21,7 @@ def _file_sha256(path: Path, chunk: int = 1 << 20) -> str:
             h.update(data)
     return h.hexdigest()
 
-
+# Caches head-only OBJ using SHA256
 def get_cached_head_obj(obj_path: Path, keep_top_percent: float = 0.13) -> Path:
     """
     Return path to a head-only OBJ, building it if not already cached.
@@ -32,10 +34,12 @@ def get_cached_head_obj(obj_path: Path, keep_top_percent: float = 0.13) -> Path:
 
     head_obj = CACHE_DIR / "objs" / f"{cache_key}_head.obj"
 
+    # Checks if its a cache hit
     if head_obj.exists():
         print(f"Cache hit  - reusing head OBJ {head_obj.name}")
         return head_obj
 
+    # If its a cache miss, we compute the face mask and generate the head-only OBJ
     print(f"Cache miss - building head OBJ from {obj_path.name}")
     head_obj.parent.mkdir(parents=True, exist_ok=True)
     mask = build_head_face_mask_by_y(str(obj_path), keep_top_percent=keep_top_percent)
@@ -43,6 +47,7 @@ def get_cached_head_obj(obj_path: Path, keep_top_percent: float = 0.13) -> Path:
     return head_obj
 
 
+# Caches GLB using SHA256(works similary to OBJ file)
 def get_cached_glb(obj_path: Path) -> Path:
     """
     Return path to a GLB, converting from OBJ if not already cached.

@@ -12,16 +12,17 @@ Pipeline:
     → composite over white → save PNG
 """
 
-from __future__ import annotations
+from __future__ import annotations # Used for type hints
 
 from pathlib import Path
-from typing import Union
+from typing import Union # Type hints for maintainability
 
 import numpy as np
 from PIL import Image
 
 # ---------------------------------------------------------------------------
 # Native extension
+# Make sure that we can import the compiled C++ extension (so module doesn't crash if .so file hasn't been built yet)
 # ---------------------------------------------------------------------------
 try:
     from face_renderer.filament_renderer import FaceRenderer as _NativeRenderer
@@ -30,9 +31,7 @@ except ImportError:
     _NATIVE_OK = False
     _NativeRenderer = None  # type: ignore
 
-# ---------------------------------------------------------------------------
-# Cache (all hashing / conversion logic lives here)
-# ---------------------------------------------------------------------------
+# Import caching functions from cache.py
 from face_renderer.cache import get_cached_head_obj, get_cached_glb
 
 # ---------------------------------------------------------------------------
@@ -49,13 +48,14 @@ def _get_renderer(image_size: int) -> "_NativeRenderer":
             "Build it with: pip install ."
         )
     key = (image_size,)
-    if key not in _renderer_cache:
+    if key not in _renderer_cache: # If cache miss, create a new renderer
         _renderer_cache[key] = _NativeRenderer(image_size, image_size)
     return _renderer_cache[key]
 
 
 # ---------------------------------------------------------------------------
 # Resolve mesh.obj from a directory path or Face object
+# Look for mesh.obj inside the directory
 # ---------------------------------------------------------------------------
 
 def _resolve_obj_path(face_or_path, model: str, renderable: str) -> Path:
@@ -68,7 +68,7 @@ def _resolve_obj_path(face_or_path, model: str, renderable: str) -> Path:
             return candidate
         raise FileNotFoundError(f"Cannot find mesh.obj in {base}")
 
-    # Duck-type: Face object
+    # Finds path to Face object with bracket notation
     try:
         mesh_path = (
             face_or_path
@@ -80,6 +80,7 @@ def _resolve_obj_path(face_or_path, model: str, renderable: str) -> Path:
     except (AttributeError, KeyError, TypeError):
         pass
 
+    # Finds path to Face object with attribute notation
     try:
         mesh_path = getattr(
             getattr(
@@ -149,28 +150,28 @@ def render_face(
         Path to saved PNG (or list of Paths for n_frames > 1).
     """
 
-    # ── 1. Resolve OBJ path ───────────────────────────────────────────────────
+    # 1. Resolve OBJ path 
     obj_path = _resolve_obj_path(face_or_path, model, renderable)
     print(f"[render_face] OBJ source: {obj_path}")
 
-    # ── 2. Get cached head-only OBJ ───────────────────────────────────────────
+    # 2. Get cached head-only OBJ 
     head_obj = get_cached_head_obj(obj_path, keep_top_percent)
     print(f"[render_face] Head OBJ:   {head_obj}")
 
-    # ── 3. Get cached GLB ─────────────────────────────────────────────────────
+    # 3. Get cached GLB 
     glb_path = get_cached_glb(head_obj)
     print(f"[render_face] GLB:        {glb_path}")
 
-    # ── 4. Set up renderer & load model ───────────────────────────────────────
+    # 4. Set up renderer & load model 
     renderer = _get_renderer(image_size)
     renderer.load_model(str(glb_path))
 
     effective_radius = radius if radius is not None else -1.0
 
-    # ── 5. Render ─────────────────────────────────────────────────────────────
+    # 5. Render 
     out_path = Path(out_path)
 
-    if n_frames == 1:
+    if n_frames == 1: # Single Frame
         renderer.set_camera(
             yaw=yaw_degrees,
             pitch=pitch_degrees,
@@ -181,7 +182,7 @@ def render_face(
         print(f"[render_face] Saved → {saved}")
         return saved
 
-    else:
+    else: # Turntable
         out_path.mkdir(parents=True, exist_ok=True)
         saved_paths: list[Path] = []
         for i in range(n_frames):
@@ -200,7 +201,7 @@ def render_face(
         print(f"[render_face] Turntable saved to {out_path}/")
         return saved_paths
 
-
+# Takes the raw numpy array from C++ renderer and composites it over solid color background, converts to RGB, and saves as PNG
 def _save_frame(
     raw: np.ndarray,
     out_path: Path,

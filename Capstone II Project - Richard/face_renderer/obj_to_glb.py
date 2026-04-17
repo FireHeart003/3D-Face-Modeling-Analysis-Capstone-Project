@@ -1,12 +1,13 @@
-import trimesh
-import shutil
+import trimesh # Loads and exports 3D meshes
+import shutil # Copies files
 import numpy as np
 from pathlib import Path
 
 ASSET_ROOT = Path("tests/assets/makehuman_raw")
 
-# Maps geometry name keywords → material settings.
+# Maps geometry name keywords to material settings.
 # Checked in order — first match wins.
+# HARD CODED VALUES(NEEDS TO BE UPDATED FOR OTHER MATERIALS/TEXTURES)
 _MATERIAL_RULES = [
     {
         "keywords": ["eyebrow"],
@@ -47,7 +48,7 @@ _SKIN_RULE = {
     "double_sided": False,
 }
 
-
+# Look up right rule for the material, if not we return the skin rule
 def _rule_for(name_lower: str) -> dict:
     for rule in _MATERIAL_RULES:
         if any(kw in name_lower for kw in rule["keywords"]):
@@ -59,6 +60,7 @@ def obj_to_glb(obj_path, glb_path, asset_root=None):
     obj_path = Path(obj_path)
     glb_path = Path(glb_path)
 
+    # Look for the mesh.mtl file
     if asset_root is None:
         asset_root = (
             obj_path.parent
@@ -67,7 +69,7 @@ def obj_to_glb(obj_path, glb_path, asset_root=None):
         )
 
     glb_path.parent.mkdir(parents=True, exist_ok=True)
-    _copy_assets_to(obj_path, asset_root)
+    _copy_assets_to(obj_path, asset_root) # Copy MTL and texture files next to the OBJ so trimesh can find them during loading
 
     scene = trimesh.load(str(obj_path), force="scene")
 
@@ -96,6 +98,7 @@ def _fix_scene_materials(scene, asset_root):
     geom_names = list(scene.geometry.keys())
     print("Geometry names found:", geom_names)
 
+    # For each geometry, look up its material rule and find the right texture file
     for name, geom in scene.geometry.items():
         if not hasattr(geom, "visual"):
             continue
@@ -133,6 +136,7 @@ def _fix_scene_materials(scene, asset_root):
                 print(f"  {name}: clamping UVs from [{uv_min:.3f}, {uv_max:.3f}] → [0, 1]")
                 uv = np.clip(uv, 0.0, 1.0)
 
+        # Load the texture image and creates a PBR with right settings
         img = PILImage.open(str(tex_path)).convert("RGBA")
 
         mat = trimesh.visual.material.PBRMaterial(
@@ -172,14 +176,16 @@ def _patch_glb_materials(glb_path: Path, geom_name_order: list = None):
     except ImportError:
         print("  [WARN] pygltflib not installed. Run: pip install pygltflib")
         return
-
+    # Load exported GLB file as JSON using pygltflib so we can read and edit raw GLB data
     gltf = pygltflib.GLTF2().load(str(glb_path))
     changed = False
 
+    # Check if all material names are in the GLB
     names_are_none = all(m.name is None for m in gltf.materials)
     if names_are_none:
         print("  [INFO] All GLB material names are None — using index-based patch.")
 
+    # For each material in GLB, figures out which rules to apply
     for i, mat in enumerate(gltf.materials):
         # Determine which rule applies
         if not names_are_none and mat.name:
@@ -195,7 +201,7 @@ def _patch_glb_materials(glb_path: Path, geom_name_order: list = None):
 
         new_alpha  = rule["alpha_mode"]
         new_cutoff = rule["alpha_cutoff"] if new_alpha == "MASK" else None
-        new_ds     = rule["double_sided"]
+        new_ds = rule["double_sided"]
 
         if (mat.alphaMode != new_alpha
                 or mat.alphaCutoff != new_cutoff
