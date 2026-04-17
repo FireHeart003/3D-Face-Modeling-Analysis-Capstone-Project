@@ -23,7 +23,10 @@
 using namespace filament;
 using namespace filament::gltfio;
 
+// Declare FaceRenderer class; a blueprint for the renderer
 class FaceRenderer {
+
+// Public methods that are exposed to Python thru bindings.cpp
 public:
     FaceRenderer(int width, int height, const std::string& filamentDistPath);
     ~FaceRenderer();
@@ -32,6 +35,7 @@ public:
     void setCamera(float yaw, float pitch, float radius);
     std::vector<uint8_t> render();
 
+// Private helper methods for renderer.cpp
 private:
     void _setupRenderTarget();
     void _setupLight();
