@@ -38,8 +38,26 @@ pip install -r requirements.txt
 
 ## Installation
 
-Build and install the native C++ extension (required before first run): **Ensure that you are in the directory above the build folder.**
+1. Clone the Repository
 ```bash
+git clone https://github.com/FireHeart003/3D-Face-Modeling-Analysis-Capstone-Project.git
+cd 3D-Face-Modeling-Analysis-Capstone-Project
+```
+
+2. Create A Virtual Environment
+```bash
+python3 -m venv venv
+source venv/bin/activate
+```
+
+3. Install Python Dependencies
+```bash
+pip install -r requirements.txt
+```
+
+4. Build and install the native C++ extension (required before first run): **Ensure that you are in the directory above the build folder.**
+```bash
+rm -f face_renderer/filament_renderer.cpython-*.so
 rm -rf build && mkdir build   
 cd build && cmake .. -DCMAKE_BUILD_TYPE=Release && make -j4
 cd ..                              
